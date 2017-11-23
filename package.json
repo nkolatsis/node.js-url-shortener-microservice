@@ -1,0 +1,23 @@
+{
+  "name": "url-shortener-microservice",
+  "version": "0.0.1",
+  "description": "A url shortener microservice project developed for the FreeCodeCamp backend developer certicification.",
+  "main": "short-ms.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nkolatsis/url-shortener-microserver.git"
+  },
+  "author": "Nicholas Kolatsis",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nkolatsis/url-shortener-microserver/issues"
+  },
+  "homepage": "https://github.com/nkolatsis/url-shortener-microserver#readme",
+  "dependencies": {
+    "express": "^4.16.2",
+    "mongod": "^2.0.0"
+  }
+}
