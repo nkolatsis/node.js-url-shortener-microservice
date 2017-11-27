@@ -18,6 +18,6 @@
   "homepage": "https://github.com/nkolatsis/url-shortener-microserver#readme",
   "dependencies": {
     "express": "^4.16.2",
-    "mongod": "^2.0.0"
+    "mongodb": "^2.2.33"
   }
 }

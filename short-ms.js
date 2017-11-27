@@ -18,7 +18,7 @@ function giveMeShorts() {
             var char = whitelistedChars[Math.floor(Math.random() * whitelistedChars.length)]
             generatedURL.push(char)
         }
-        urls.findOnce({short_url: generatedURL.join("")})
+        urls.find({short_url: generatedURL.join("")})
             .toArray((err, url) => {
                 if (url[0] == undefined) {
                     unique = true
@@ -29,8 +29,9 @@ function giveMeShorts() {
 }
 
 app.get("/:short", (req, res) => {
+    console.log("/" + req.param.short + " requested.")
     /* search db and redirect else 404 */
-    urls.findOnce({short: req.params.short})
+    urls.find({short: req.params.short})
         .toArray((err, url) => {
             if (url[0] != undefined) {
                 res.redirect(url[0].original_url)
@@ -41,13 +42,18 @@ app.get("/:short", (req, res) => {
 
 })
 
-app.get("/new/:url", (req, res) => {
+app.get(/^\/new\/(.*)/, (req, res) => {
+    console.log("/new/" + req.param.url + "requested.")
     /* search db for duplicates then add or not and return the json */
-    urls.findOnce({original: req.params.url})
+    urls.find({original: req.params.url})
         .toArray((err, url) =>  {
             if (url[0] == undefined) {
-                urls.insertOnce({short_url: giveMeShorts(), original_url: req.params.url}) // left off here
+                var urlModel = {short_url: giveMeShorts(), original_url: req.params.url}
+                urls.insertOne(urlModel, (err, data) => {
+                    if (err) raise: err
+                })
             }
         })
-
 })
+
+app.listen(5000, () => console.log("Microservice running on port 5000"))
