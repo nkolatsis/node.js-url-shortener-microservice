@@ -19,23 +19,21 @@ const URLMapSchema = new Schema({
 const URLMap = mongoose.model('URLMap', URLMapSchema);
 
 function giveMeShorts() {
-    var unique = false;
-    var generatedURL;
-    while (unique == false) {
-        var whitelistedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("")
-        generatedURL = []
-        for (let i = 0; i < 6; i++) {
-            var char = whitelistedChars[Math.floor(Math.random() * whitelistedChars.length)]
-            generatedURL.push(char)
-        }
-        urls.find({short: generatedURL.join("")})
-            .toArray((err, url) => {
-                if (url[0] == undefined) {
-                    unique = true
-                }
-            })
+  let unique = false;
+  let generatedURL = new Array(6);
+
+  while (unique == false) {
+    const whitelistedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("")
+    for (urlChar of generatedURL) {
+      urlChar = whitelistedChars[Math.floor(Math.random() * whitelistedChars.length)]
     }
-    return generatedURL.join("")
+    URLMap.findOne({short: generatedURL.join("")}, (err, data) => {
+      if (err) console.log(err);
+      if (!data) unique = true;
+    });
+  }
+  
+  return generatedURL.join("")
 }
 
 app.get("/api/shorturl/:short", (req, res) => {
