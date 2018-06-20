@@ -1,65 +1,74 @@
+require('dotenv').config();
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-mongoose.connect(process.env.MONGO_URI);
 const Schema = mongoose.Schema;
+mongoose.connect(process.env.MONGO_URI);
+mongoose.connection.on('error', (e) => console.error('MongoDB error: %s', e));
+const bodyParser = require("body-parser");
+const urlencodedParser = bodyParser.urlencoded({extended: false});
 
 const URLMapSchema = new Schema({
-  url: {
+  website: {
     type: String,
     required: true,
   },
-  short: {
+  shorturl: {
       type: String,
       required: true,
       unique: true
   }
 });
 
-const URLMap = mongoose.model('URLMap', URLMapSchema);
+let URLMap = mongoose.model('URLMap', URLMapSchema);
 
 function getUniqueSlug() {
   let unique = false;
-  let generatedURL = new Array(6);
-
-  while (unique == false) {
-    const whitelistedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("")
-    for (urlChar of generatedURL) {
-      urlChar = whitelistedChars[Math.floor(Math.random() * whitelistedChars.length)]
-    }
-    URLMap.findOne({short: generatedURL.join("")}, (err, data) => {
-      if (err) console.log(err);
-      if (!data) unique = true;
-    });
-  }
   
-  return generatedURL.join("")
+  while (unique == false) {
+    const whitelist = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
+    let slug = [];
+    [...Array(6)].forEach((x) => {
+      slug.push(whitelist[Math.floor(Math.random() * whitelist.length)]);
+    });
+/*
+    URLMap.findOne({shorturl: slug.join("")}, (err, data) => {
+      console.log("asdf")
+      if (err) console.error(err);
+      console.log(data)
+      console.log(!data)
+      unique = true;
+      return slug.join("")
+    });
+*/
+    unique = true;
+    console.log(slug.join(""));
+    return slug.join("");
+  }
 }
 
 app.get("/api/shorturl/:short", (req, res) => {
-  console.log("/api/shorturl/" + req.param.short + " requested.")
-  /* search db and redirect else 404 */
-  URLMap.findOne({short: req.params.short}, (err, data) => {
-    if (err) console.log(err);
+  // Poor man's testing: curl http://localhost:5000/api/shortcut/AhPlpN
+  console.log("/api/shorturl/" + req.params.short + " requested.")
+  URLMap.findOne({shorturl: req.params.short}, (err, data) => {
+    if (err) console.error(err);
     if (!data) {
-      res.redirect(data.url);
+      return res.json(data);
     } else {
-      res.status(404).send(req.params.short + " does not exist in the system.");
+      return res.status(404).send(req.params.short + " does not exist in the system.");
     }
   });
 })
 
-app.post("/api/shorturl/new", (req, res) => {
-  /* search db for duplicates then add or not and return the json */
-  let urlMap = new URLMap({url: req.params.url, short: getUniqueSlug()});
+app.post("/api/shorturl/new", urlencodedParser, (req, res) => {
+  // Poor man's testing: curl --data "website=example.com" http://localhost:5000/api/shorturl/new
+  let urlMap = new URLMap({website: req.body.website, shorturl: getUniqueSlug()});
   urlMap.save((err, data) => {
-    if (err) console.log(err);
-    res.redirect(data.short)
+    if (err) console.error(err);
+    return res.redirect("/api/shortcut/" + data.shorturl)
   });
 });
 
-app.get("/", (req, res) => {
-
-});
-
 app.listen(5000, () => console.log("Microservice running on port 5000"))
+
+module.exports = app
