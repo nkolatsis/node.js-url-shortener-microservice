@@ -1,14 +1,24 @@
-var express = require("express")
-var mongo = require("mongodb").MongoClient
+const express = require("express");
+const app = express();
+const mongoose = require("mongoose");
+mongoose.connect(process.env.MONGO_URI);
+const Schema = mongoose.Schema;
 
-var app = express()
-var urls;
-mongo.connect(process.env.MONGO_URI, (err, db) => {
-    urls = db.collection("urls")
-})
+const URLMapSchema = new Schema({
+  short: {
+      type: String,
+      required: true,
+      unique: true
+  },
+  url: {
+    type: String,
+    required: true,
+  }
+});
+
+const URLMap = mongoose.model('URLMap', URLMapSchema);
 
 function giveMeShorts() {
-    // hope this works  -- todo: test this with mocha and chai.js
     var unique = false;
     var generatedURL;
     while (unique == false) {
@@ -18,7 +28,7 @@ function giveMeShorts() {
             var char = whitelistedChars[Math.floor(Math.random() * whitelistedChars.length)]
             generatedURL.push(char)
         }
-        urls.find({short_url: generatedURL.join("")})
+        urls.find({short: generatedURL.join("")})
             .toArray((err, url) => {
                 if (url[0] == undefined) {
                     unique = true
