@@ -3,7 +3,7 @@ var mongo = require("mongodb").MongoClient
 
 var app = express()
 var urls;
-mongo.connect("mongodb://localhost:27017/short-ms", (err, db) => {
+mongo.connect(process.env.MONGO_URI, (err, db) => {
     urls = db.collection("urls")
 })
 
@@ -28,7 +28,7 @@ function giveMeShorts() {
     return generatedURL.join("")
 }
 
-app.get("/:short", (req, res) => {
+app.get("/api/shorturl/:short", (req, res) => {
     console.log("/" + req.param.short + " requested.")
     /* search db and redirect else 404 */
     urls.find({short: req.params.short})
@@ -42,7 +42,7 @@ app.get("/:short", (req, res) => {
 
 })
 
-app.get(/^\/new\/(.*)/, (req, res) => {
+app.post("/api/shorturl/new", (req, res) => {
     console.log("/new/" + req.param.url + "requested.")
     /* search db for duplicates then add or not and return the json */
     urls.find({original: req.params.url})
