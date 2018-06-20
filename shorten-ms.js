@@ -18,7 +18,7 @@ const URLMapSchema = new Schema({
 
 const URLMap = mongoose.model('URLMap', URLMapSchema);
 
-function giveMeShorts() {
+function uniqueSlug() {
   let unique = false;
   let generatedURL = new Array(6);
 
@@ -39,15 +39,14 @@ function giveMeShorts() {
 app.get("/api/shorturl/:short", (req, res) => {
     console.log("/" + req.param.short + " requested.")
     /* search db and redirect else 404 */
-    urls.find({short: req.params.short})
-        .toArray((err, url) => {
-            if (url[0] != undefined) {
-                res.redirect(url[0].original_url)
-            } else {
-                res.status(404).send("This url does not exist.")
-            }
-        })
-
+    URLMap.findOne({short: req.params.short}, (err, data) => {
+      if (err) console.log(err);
+      if (!data) {
+        res.redirect(data.url);
+      } else {
+        res.status(404).send(req.params.short + " does not exist in the system.");
+      }
+    });
 })
 
 app.post("/api/shorturl/new", (req, res) => {
@@ -56,7 +55,7 @@ app.post("/api/shorturl/new", (req, res) => {
     urls.find({original: req.params.url})
         .toArray((err, url) =>  {
             if (url[0] == undefined) {
-                var urlModel = {short_url: giveMeShorts(), original_url: req.params.url}
+                var urlModel = {short_url: uniqueSlug(), original_url: req.params.url}
                 urls.insertOne(urlModel, (err, data) => {
                     if (err) raise: err
                 })
