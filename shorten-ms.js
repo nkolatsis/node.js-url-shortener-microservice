@@ -31,7 +31,7 @@ function getUniqueSlug() {
     [...Array(6)].forEach((x) => {
       slug.push(whitelist[Math.floor(Math.random() * whitelist.length)]);
     });
-/*
+/* Callback never called when no match found. What is happening?
     URLMap.findOne({shorturl: slug.join("")}, (err, data) => {
       console.log("asdf")
       if (err) console.error(err);
@@ -48,12 +48,12 @@ function getUniqueSlug() {
 }
 
 app.get("/api/shorturl/:short", (req, res) => {
-  // Poor man's testing: curl http://localhost:5000/api/shortcut/AhPlpN
+  // Poor man's testing: curl http://localhost:5000/api/shorturl/3Nqa6u
   console.log("/api/shorturl/" + req.params.short + " requested.")
   URLMap.findOne({shorturl: req.params.short}, (err, data) => {
     if (err) console.error(err);
-    if (!data) {
-      return res.json(data);
+    if (data) {
+      return res.redirect("http://"+data.website);
     } else {
       return res.status(404).send(req.params.short + " does not exist in the system.");
     }
@@ -65,7 +65,7 @@ app.post("/api/shorturl/new", urlencodedParser, (req, res) => {
   let urlMap = new URLMap({website: req.body.website, shorturl: getUniqueSlug()});
   urlMap.save((err, data) => {
     if (err) console.error(err);
-    return res.redirect("/api/shortcut/" + data.shorturl)
+    return res.json({"website": data.website, "shorturl": data.shorturl});
   });
 });
 
