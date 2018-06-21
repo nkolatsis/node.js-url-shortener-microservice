@@ -23,24 +23,18 @@ const URLMapSchema = new Schema({
 let URLMap = mongoose.model('URLMap', URLMapSchema);
 
 function getUniqueSlug() {
-  let unique = false;
-  while (unique == false) {
     const whitelist = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
     let slug = [];
     [...Array(6)].forEach((x) => {
       slug.push(whitelist[Math.floor(Math.random() * whitelist.length)]);
     });
 
-    URLMap.findOne({shorturl: slug.join("")}, (err, data) => {
-      console.log("asdf")
-      if (err) console.error(err);
-      console.log("data: " + data);
-      unique = true;
-      return slug.join("");
-    });
-
-    console.log(slug.join(""));
-  };
+    URLMap.findOne({"shorturl": slug.join("")}).exec().then(
+      (data) => {
+        if (!data) return slug.join("");
+        else return getUniqueSlug()
+      },
+      (err) => {if (err) console.error(err);});
 };
 
 function isValidUrl(url) {
