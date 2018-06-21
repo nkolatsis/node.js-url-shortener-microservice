@@ -24,26 +24,42 @@ let URLMap = mongoose.model('URLMap', URLMapSchema);
 
 function getUniqueSlug() {
   let unique = false;
-  
   while (unique == false) {
     const whitelist = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
     let slug = [];
     [...Array(6)].forEach((x) => {
       slug.push(whitelist[Math.floor(Math.random() * whitelist.length)]);
     });
-/* Callback never called when no match found. What is happening?
+
     URLMap.findOne({shorturl: slug.join("")}, (err, data) => {
       console.log("asdf")
       if (err) console.error(err);
-      console.log(data)
-      console.log(!data)
+      console.log("data: " + data);
       unique = true;
-      return slug.join("")
+      return slug.join("");
     });
-*/
-    unique = true;
+
     console.log(slug.join(""));
-    return slug.join("");
+  };
+};
+
+function isValidUrl(url) {
+  // Strip trailing slash (/)
+  if (url.match(/\/$/)) {
+    url = url.slice(0, -1);
+  }
+     // begins with the http protocol 
+  if (url.match(/^https?:\/\//) &&
+      // contains no whitespace
+      !url.match(/\s/) &&
+      // contains at least 1 period
+      url.match(/\./) &&
+      // contains no double quotes
+      !url.match(/\"/)
+  ) {
+    return true
+  } else {
+    return false
   }
 }
 
@@ -53,7 +69,7 @@ app.get("/api/shorturl/:short", (req, res) => {
   URLMap.findOne({shorturl: req.params.short}, (err, data) => {
     if (err) console.error(err);
     if (data) {
-      return res.redirect("http://"+data.website);
+      return res.redirect(data.website);
     } else {
       return res.status(404).send(req.params.short + " does not exist in the system.");
     }
@@ -62,11 +78,13 @@ app.get("/api/shorturl/:short", (req, res) => {
 
 app.post("/api/shorturl/new", urlencodedParser, (req, res) => {
   // Poor man's testing: curl --data "website=example.com" http://localhost:5000/api/shorturl/new
-  let urlMap = new URLMap({website: req.body.website, shorturl: getUniqueSlug()});
-  urlMap.save((err, data) => {
-    if (err) console.error(err);
-    return res.json({"website": data.website, "shorturl": data.shorturl});
-  });
+  if (isValidUrl(req.body.website)) {
+    let urlMap = new URLMap({website: req.body.website, shorturl: getUniqueSlug()});
+    urlMap.save((err, data) => {
+      if (err) console.error(err);
+      return res.json({"website": data.website, "shorturl": data.shorturl});
+    });
+  } else return res.json({"error": "invalid URL"});
 });
 
 app.listen(5000, () => console.log("Microservice running on port 5000"))
