@@ -23,6 +23,7 @@ const URLMapSchema = new Schema({
 let URLMap = mongoose.model('URLMap', URLMapSchema);
 
 function getUniqueSlug() {
+  // Todo: fix this
   const whitelist = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
   function generateSlug() {
     let slugArray = [];
