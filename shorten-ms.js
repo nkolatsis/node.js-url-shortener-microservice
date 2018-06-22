@@ -25,21 +25,19 @@ let URLMap = mongoose.model('URLMap', URLMapSchema);
 function getUniqueSlug() {
   // Todo: fix this
   const whitelist = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
-  function generateSlug() {
-    let slugArray = [];
-    [...Array(6)].forEach((x) => {
-      slugArray.push(whitelist[Math.floor(Math.random() * whitelist.length)]);
-    });
-    return slugArray.join("");
-  };
-  let slug = generateSlug();
-  URLMap.findOne({"shorturl": slug}).exec().then(
+  let slug = [];
+  [...Array(6)].forEach((x) => {
+    slug.push(whitelist[Math.floor(Math.random() * whitelist.length)]);
+  });
+
+  URLMap.findOne({"shorturl": slug.join("")}).exec().then(
     (data) => {
-      if (!data) return slug;
-      else throw "Slug already taken. Learn to async await"; // (╯°□°)╯︵ ┻━┻
+      if (!data.length) return slug.join(""); // WAIT here for response
+      else throw "Slug already taken. Learn to async await database calls inside a loop."; // (╯°□°)╯︵ ┻━┻
     },
     (err) => {if (err) console.error(err);}
   );
+  return slug.join("");
 };
 
 function isValidUrl(url) {
@@ -77,15 +75,13 @@ app.get("/api/shorturl/:short", (req, res) => {
 
 app.post("/api/shorturl/new", urlencodedParser, (req, res) => {
   // Poor man's testing: curl --data "website=example.com" http://localhost:5000/api/shorturl/new
-  try {
-    if (isValidUrl(req.body.website)) {
-      let urlMap = new URLMap({website: req.body.website, shorturl: getUniqueSlug()});
-      urlMap.save((err, data) => {
-        if (err) console.error(err);
-        return res.json({"website": data.website, "shorturl": data.shorturl});
-      });
-    } else return res.json({"error": "invalid URL"});
-  } catch (e) { console.error(e); }
+  if (isValidUrl(req.body.website)) {
+    let urlMap = new URLMap({website: req.body.website, shorturl: getUniqueSlug()});
+    urlMap.save((err, data) => {
+      if (err) console.error(err);
+      return res.json({"website": data.website, "shorturl": data.shorturl});
+    });
+  } else return res.json({"error": "invalid URL"});
 });
 
 app.listen(5000, () => console.log("Microservice running on port 5000"))
