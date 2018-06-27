@@ -32,7 +32,7 @@ function getUniqueSlug() {
 
   URLMap.findOne({"shorturl": slug.join("")}).exec().then(
     (data) => {
-      if (!data.length) return slug.join(""); // WAIT here for response
+      if (!data) return slug.join(""); // WAIT here for response
       else throw "Slug already taken. Learn to async await database calls inside a loop."; // (╯°□°)╯︵ ┻━┻
     },
     (err) => {if (err) console.error(err);}
@@ -60,6 +60,8 @@ function isValidUrl(url) {
   }
 }
 
+app.get("/", (req, res) => res.sendFile(__dirname+"/views/form.html"));
+
 app.get("/api/shorturl/:short", (req, res) => {
   // Poor man's testing: curl http://localhost:5000/api/shorturl/3Nqa6u
   console.log("/api/shorturl/" + req.params.short + " requested.")
@@ -74,7 +76,7 @@ app.get("/api/shorturl/:short", (req, res) => {
 })
 
 app.post("/api/shorturl/new", urlencodedParser, (req, res) => {
-  // Poor man's testing: curl --data "website=example.com" http://localhost:5000/api/shorturl/new
+  // Poor man's testing: curl --data "website=http://example.com" http://localhost:5000/api/shorturl/new
   if (isValidUrl(req.body.website)) {
     let urlMap = new URLMap({website: req.body.website, shorturl: getUniqueSlug()});
     urlMap.save((err, data) => {
@@ -84,6 +86,6 @@ app.post("/api/shorturl/new", urlencodedParser, (req, res) => {
   } else return res.json({"error": "invalid URL"});
 });
 
-app.listen(5000, () => console.log("Microservice running on port 5000"))
+app.listen(2500, () => console.log("Microservice running on port 2500"))
 
 module.exports = app
