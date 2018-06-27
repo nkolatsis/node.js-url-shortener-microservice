@@ -81,7 +81,11 @@ app.post("/api/shorturl/new", urlencodedParser, (req, res) => {
     let urlMap = new URLMap({website: req.body.website, shorturl: getUniqueSlug()});
     urlMap.save((err, data) => {
       if (err) console.error(err);
-      return res.json({"website": data.website, "shorturl": data.shorturl});
+      return res.json({
+        "website": data.website,
+        "shorturl": data.shorturl,
+        "Your URL": "http://shortener-ms-nkolatsis.glitch.me/" + data.shorturl
+      });
     });
   } else return res.json({"error": "invalid URL"});
 });
