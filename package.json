@@ -2,10 +2,10 @@
   "name": "url-shortener-microservice",
   "version": "0.0.1",
   "description": "A url shortener microservice project developed for the FreeCodeCamp backend developer certicification.",
-  "main": "short-ms.js",
+  "main": "shortener-ms.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node shorten-ms.js"
+    "start": "node shortener-ms.js"
   },
   "repository": {
     "type": "git",
